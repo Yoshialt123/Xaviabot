@@ -44,6 +44,6 @@
     "MAX_VIDEOS": 6
   },
   "rule34": {
-    "USAGE_COST": 1000
+    "USAGE_COST": 0
   }
 }
