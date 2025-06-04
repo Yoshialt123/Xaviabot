@@ -22,8 +22,8 @@
     "ABSOLUTES": [
         "AB_UID"
     ],
-    "NAME": "NAME_OF_BOT",
-    "PREFIX": "PREFIX_HERE",
+    "NAME": "Komasan",
+    "PREFIX": "#",
     "timezone": "Asia/Manila",
     "REFRESH": "43200000"
 }
