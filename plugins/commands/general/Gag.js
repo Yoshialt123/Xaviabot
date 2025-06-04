@@ -1,21 +1,48 @@
 import axios from "axios";
-import { sendMessage } from "../handles/sendMessage.js";
-
-const activeSessions = new Map();
 
 const config = {
   name: "gagstock",
+  aliases: [],
   description: "Track Grow A Garden stock + weather every 30s (only notify if updated)",
   usage: "gagstock on | gagstock off",
   category: "Tools ⚒️",
-  aliases: [],
-  cooldown: 0,
+  cooldown: 3,
   permissions: [0],
-  credits: "You"
+  credits: "Converted by Me. hirap kasi mag ping"
 };
 
-async function onCall({ message, args, senderID, pageAccessToken }) {
+const activeSessions = new Map();
+
+async function onCall({ message, args }) {
+  const senderId = message.senderID || message.threadID;
   const action = args[0]?.toLowerCase();
+
+  if (action === "off") {
+    const session = activeSessions.get(senderId);
+    if (session) {
+      clearInterval(session.interval);
+      activeSessions.delete(senderId);
+      return message.send("🛑 Gagstock tracking stopped.");
+    } else {
+      return message.send("⚠️ You don't have an active gagstock session.");
+    }
+  }
+
+  if (action !== "on") {
+    return message.send(
+      "📌 Usage:\n• `gagstock on` to start tracking\n• `gagstock off` to stop tracking"
+    );
+  }
+
+  if (activeSessions.has(senderId)) {
+    return message.send(
+      "📡 You're already tracking Gagstock. Use `gagstock off` to stop."
+    );
+  }
+
+  await message.send(
+    "✅ Gagstock tracking started! You'll be notified when stock or weather changes."
+  );
 
   const getPHTime = (timestamp) =>
     new Date(timestamp).toLocaleString("en-PH", {
@@ -24,35 +51,8 @@ async function onCall({ message, args, senderID, pageAccessToken }) {
       minute: "2-digit",
       second: "2-digit",
       hour12: true,
-      weekday: "short",
+      weekday: "short"
     });
-
-  if (action === "off") {
-    const session = activeSessions.get(senderID);
-    if (session) {
-      clearInterval(session.interval);
-      activeSessions.delete(senderID);
-      return await sendMessage(senderID, { text: "🛑 Gagstock tracking stopped." }, pageAccessToken);
-    } else {
-      return await sendMessage(senderID, { text: "⚠️ You don't have an active gagstock session." }, pageAccessToken);
-    }
-  }
-
-  if (action !== "on") {
-    return await sendMessage(senderID, {
-      text: "📌 Usage:\n• `gagstock on` to start tracking\n• `gagstock off` to stop tracking"
-    }, pageAccessToken);
-  }
-
-  if (activeSessions.has(senderID)) {
-    return await sendMessage(senderID, {
-      text: "📡 You're already tracking Gagstock. Use `gagstock off` to stop."
-    }, pageAccessToken);
-  }
-
-  await sendMessage(senderID, {
-    text: "✅ Gagstock tracking started! You'll be notified when stock or weather changes."
-  }, pageAccessToken);
 
   const fetchAll = async () => {
     try {
@@ -73,10 +73,10 @@ async function onCall({ message, args, senderID, pageAccessToken }) {
         weather: weather.updatedAt
       });
 
-      const previousKey = activeSessions.get(senderID)?.lastCombinedKey;
+      const previousKey = activeSessions.get(senderId)?.lastCombinedKey;
       if (combinedKey === previousKey) return;
 
-      activeSessions.get(senderID).lastCombinedKey = combinedKey;
+      activeSessions.get(senderId).lastCombinedKey = combinedKey;
 
       const now = Date.now();
 
@@ -100,16 +100,19 @@ async function onCall({ message, args, senderID, pageAccessToken }) {
         `📅 𝗚𝗲𝗮𝗿/𝗦𝗲𝗲𝗱 𝗨𝗽𝗱𝗮𝘁𝗲𝗱: ${gearTime}\n🔁 𝗥𝗲𝘀𝗲𝘁 𝗶𝗻: ${gearResetText}\n\n` +
         `📅 𝗘𝗴𝗴 𝗨𝗽𝗱𝗮𝘁𝗲𝗱: ${eggTime}\n🔁 𝗥𝗲𝘀𝗲𝘁 𝗶𝗻: ${eggResetText}`;
 
-      await sendMessage(senderID, { text: messageText }, pageAccessToken);
+      await message.send(messageText);
     } catch (err) {
       console.error("❌ Gagstock Error:", err.message);
     }
   };
 
   const interval = setInterval(fetchAll, 30 * 1000);
-  activeSessions.set(senderID, { interval, lastCombinedKey: null });
+  activeSessions.set(senderId, { interval, lastCombinedKey: null });
 
   await fetchAll();
 }
 
-export default { config, onCall };
+export default {
+  config,
+  onCall
+};
