@@ -3,7 +3,7 @@ import axios from "axios";
 import fs from "fs";
 
 const config = {
-    name: "video",
+    name: "gagvid",
     aliases: ['rb', 'yt2mp4', 'ytbot'],
     version: "1.0.8",
     description: "Play video from YouTube + auto shorts sender",
