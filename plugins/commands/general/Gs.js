@@ -2,11 +2,11 @@ import axios from "axios";
 
 const config = {
   name: "gs",
-  description: "Funny GagStock Tracker with Smart Timer",
+  description: "GagStock Tracker",
   usage: "gs on | gs off | gs now",
   cooldown: 3,
   permissions: [0],
-  credits: "You + ChatGPT 💚"
+  credits: "Me and Chatgpt💚"
 };
 
 const activeSessions = new Map();
