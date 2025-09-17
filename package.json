@@ -54,7 +54,7 @@
     "systeminformation": "^5.25.11",
     "wikijs": "^6.4.0",
     "ws3-fca": "^1.0.12",
-    "ytdl-core": "^4.11.5"
+    "ytdl-core": "^4.11.5",
     "bedrock-protocol": "^3.48.1",
     "log4js": "^6.7.1",
     "minecraft-data": "^3.27.0",
