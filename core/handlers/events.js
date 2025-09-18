@@ -264,10 +264,98 @@ async function handleCommand(event) {
                 // Do something when user don't have enough permissions
                 // Làm gì đó khi người dùng không có đủ quyền hạn
             }
-        } else {
+                } else {
+            // Unknown command handler with random Otaku GIF
+            try {
+                const reactions = [
+                    "airkiss",
+                    "angrystare",
+                    "bite",
+                    "bleh",
+                    "blush",
+                    "brofist",
+                    "celebrate",
+                    "cheers",
+                    "clap",
+                    "confused",
+                    "cry",
+                    "cuddle",
+                    "cute",
+                    "dab",
+                    "dance",
+                    "drool",
+                    "evillaugh",
+                    "facepalm",
+                    "handhold",
+                    "happy",
+                    "headbang",
+                    "hi",
+                    "highfive",
+                    "hug",
+                    "kick",
+                    "kiss",
+                    "laugh",
+                    "lick",
+                    "love",
+                    "mad",
+                    "nervous",
+                    "nod",
+                    "nope",
+                    "nosebleed",
+                    "nom",
+                    "nuzzle",
+                    "pat",
+                    "peck",
+                    "peek",
+                    "pinch",
+                    "poke",
+                    "pout",
+                    "punch",
+                    "run",
+                    "salute",
+                    "scared",
+                    "shrug",
+                    "shy",
+                    "sip",
+                    "slap",
+                    "sleepy",
+                    "slowclap",
+                    "smile",
+                    "smug",
+                    "stare",
+                    "surprised",
+                    "sweat",
+                    "thumbsup",
+                    "tickle",
+                    "tired",
+                    "wave",
+                    "wink",
+                    "yawn"
+                ];
+
+                // Pick a random reaction
+                const randomReaction =
+                    reactions[Math.floor(Math.random() * reactions.length)];
+
+                // Build the otakugifs API URL
+                const gifUrl = `https://api.otakugifs.xyz/gif?reaction=${randomReaction}`;
+
+                // Send unknown command message with random GIF
+                api.sendMessage(
+                    {
+                        body: "Unknown command! Use #help bruh✨",
+                        attachment: await global.utils.getStreamFromURL(gifUrl),
+                    },
+                    threadID,
+                    messageID
+                );
+            } catch (err) {
+                console.error("Failed to send unknown command message:", err);
+            }
+		}
+		
             // Do something when command not found
             // Làm gì đó khi không tìm thấy lệnh
-        }
     }
 }
 
