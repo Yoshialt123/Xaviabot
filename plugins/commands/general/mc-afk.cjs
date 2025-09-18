@@ -9,7 +9,7 @@ const config = {
   usage: "mcafk on | mcafk off",
   category: "Tools ⚒️",
   cooldown: 3,
-  permissions: [0],
+  permissions: [2],
   credits: "Made by Yoshialt123"
 };
 
