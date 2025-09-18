@@ -1,11 +1,11 @@
-// commands/mc-afk.js
-import { createClient } from "bedrock-protocol";
-import { Vec3 } from "vec3";
+// commands/mcafk.js
+const bedrock = require("bedrock-protocol");
+const { Vec3 } = require("vec3");
 
 const config = {
   name: "mcafk",
   aliases: ["minecraft-afk", "afkbot"],
-  description: "Connects to a Minecraft server as an AFK bot",
+  description: "Connects to a Minecraft Bedrock server as an AFK bot",
   usage: "mcafk on | mcafk off",
   category: "Tools ⚒️",
   cooldown: 3,
@@ -40,11 +40,12 @@ async function onCall({ message, args }) {
     return message.send("📡 Bot already running. Use `mcafk off` first.");
   }
 
-  const client = createClient({
-    host: "Zerenityhunters.enderman.cloud", // 🔧 change to your server
-    port: 36703,
-    username: "Herobrine", // 🔧 change if needed
-    offline: true
+  // ✅ Correct import & client creation
+  const client = bedrock.createClient({
+    host: "Skirk.enderman.cloud", // your server
+    port: 33316, // your server port
+    username: "Afk_Bot", // change if needed
+    offline: true // set false if server needs Xbox login
   });
 
   client.on("connect", () => {
@@ -62,11 +63,11 @@ async function onCall({ message, args }) {
     activeBots.delete(senderId);
   });
 
-  // Store bot
+  // Store the bot session
   activeBots.set(senderId, client);
 }
 
-export default {
+module.exports = {
   config,
   onCall
 };
