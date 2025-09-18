@@ -4,11 +4,8 @@ function checkBanStatus(data = {}, userID) {
     if (
         data?.user?.banned === true ||
         data?.thread?.banned === true ||
-        data?.thread?.info?.members?.find((e) => e.userID == userID)?.banned ===
-            true
-    )
-        return true;
-
+        data?.thread?.info?.members?.find((e) => e.userID == userID)?.banned === true
+    ) return true;
     return false;
 }
 
@@ -16,6 +13,7 @@ function getExtraEventProperties(event, { type, commandName }) {
     const { api } = global;
     const { threadID, messageID, senderID, userID } = event;
     const isReaction = type === "reaction";
+
     const extraEventProperties = {
         send: function (message, c_threadID = null, c_messageID = null) {
             return new Promise((resolve, reject) => {
@@ -24,13 +22,8 @@ function getExtraEventProperties(event, { type, commandName }) {
                     message,
                     targetSendID,
                     (err, data) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(
-                                messageFunctionCallback(data, targetSendID)
-                            );
-                        }
+                        if (err) reject(err);
+                        else resolve(messageFunctionCallback(data, targetSendID));
                     },
                     c_messageID || null
                 );
@@ -42,11 +35,8 @@ function getExtraEventProperties(event, { type, commandName }) {
                     message,
                     threadID,
                     (err, data) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(messageFunctionCallback(data, threadID));
-                        }
+                        if (err) reject(err);
+                        else resolve(messageFunctionCallback(data, threadID));
                     },
                     messageID
                 );
@@ -58,11 +48,8 @@ function getExtraEventProperties(event, { type, commandName }) {
                     emoji,
                     messageID,
                     (err, data) => {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            resolve(data);
-                        }
+                        if (err) reject(err);
+                        else resolve(data);
                     },
                     true
                 );
@@ -98,6 +85,7 @@ function getExtraEventProperties(event, { type, commandName }) {
                 }, standbyTime);
             }
         };
+
         data.addReactEvent = function (data = {}, standbyTime = 60000) {
             if (typeof data !== "object" || Array.isArray(data)) return;
             if (typeof data.callback !== "function") return;
@@ -112,14 +100,12 @@ function getExtraEventProperties(event, { type, commandName }) {
                 }, standbyTime);
             }
         };
+
         data.unsend = function (delay = 0) {
             const input = Object.assign(baseInput, data);
-            setTimeout(
-                () => {
-                    api.unsendMessage(input.messageID);
-                },
-                delay > 0 ? delay : 0
-            );
+            setTimeout(() => {
+                api.unsendMessage(input.messageID);
+            }, delay > 0 ? delay : 0);
         };
 
         return data;
@@ -146,7 +132,6 @@ function getUserPermissions(userID, _thread) {
     const adminIDs = _thread?.adminIDs || [];
 
     let permissions = [0];
-
     if (adminIDs.some((e) => e == userID)) permissions.push(1);
     if (MODERATORS.includes(userID)) permissions.push(2);
 
@@ -155,31 +140,23 @@ function getUserPermissions(userID, _thread) {
 
 function checkPermission(permissions, userPermissions) {
     if (permissions.length === 0 || userPermissions.length === 0) return false;
-
-    return permissions.some((permission) =>
-        userPermissions.includes(permission)
-    );
+    return permissions.some((permission) => userPermissions.includes(permission));
 }
 
 async function handleCommand(event) {
     const { threadID, messageID, senderID, args } = event;
     const { Threads, Users } = global.controllers;
-    const _thread =
-        event.isGroup === true ? (await Threads.get(threadID)) || {} : {};
+    const _thread = event.isGroup === true ? (await Threads.get(threadID)) || {} : {};
     const _user = (await Users.get(senderID)) || {};
 
     const data = { thread: _thread, user: _user };
     if (checkBanStatus(data, senderID)) return;
 
-    const prefix = (_thread?.data?.prefix || global.config.PREFIX || "x")
-        .trim()
-        .toLowerCase();
+    const prefix = (_thread?.data?.prefix || global.config.PREFIX || "x").trim().toLowerCase();
 
     if (args.length > 0 && args[0].startsWith(prefix)) {
         const { api, getLang } = global;
-        const commandName = findCommand(
-            args[0].slice(prefix.length)?.toLowerCase()
-        );
+        const commandName = findCommand(args[0].slice(prefix.length)?.toLowerCase());
         const command = global.plugins.commands.get(commandName) || null;
         const commandInfo = global.plugins.commandsConfig.get(commandName);
 
@@ -187,21 +164,15 @@ async function handleCommand(event) {
             const { cooldowns } = global.client;
             const permissions = commandInfo.permissions || [0];
             const userPermissions = getUserPermissions(senderID, _thread?.info);
-            const isAbsoluteUser = global.config?.ABSOLUTES.some(
-                (e) => e == senderID
-            );
-            const checkAbsolute = !!commandInfo.isAbsolute
-                ? isAbsoluteUser
-                : true;
-            const isValidUser =
-                checkPermission(permissions, userPermissions) && checkAbsolute;
+            const isAbsoluteUser = global.config?.ABSOLUTES.some((e) => e == senderID);
+            const checkAbsolute = !!commandInfo.isAbsolute ? isAbsoluteUser : true;
+            const isValidUser = checkPermission(permissions, userPermissions) && checkAbsolute;
 
             if (isValidUser) {
                 const userCooldown = cooldowns.get(senderID) || {};
                 const isReady =
                     !userCooldown[commandName] ||
-                    Date.now() - userCooldown[commandName] >=
-                        (commandInfo.cooldown || 3) * 1000;
+                    Date.now() - userCooldown[commandName] >= (commandInfo.cooldown || 3) * 1000;
 
                 if (isReady) {
                     const isNSFWEnabled = _thread?.data?.nsfw === true;
@@ -215,17 +186,14 @@ async function handleCommand(event) {
                         userCooldown[commandName] = Date.now();
                         cooldowns.set(senderID, userCooldown);
 
-                        let TLang =
-                            _thread?.data?.language ||
-                            global.config.LANGUAGE ||
-                            "en_US";
+                        let TLang = _thread?.data?.language || global.config.LANGUAGE || "en_US";
                         const getLangForCommand = (key, objectData) =>
                             getLang(key, objectData, commandName, TLang);
 
-                        const extraEventProperties = getExtraEventProperties(
-                            event,
-                            { type: "command", commandName }
-                        );
+                        const extraEventProperties = getExtraEventProperties(event, {
+                            type: "command",
+                            commandName,
+                        });
                         Object.assign(event, extraEventProperties);
 
                         const extra = commandInfo.extra || {};
@@ -260,90 +228,32 @@ async function handleCommand(event) {
                 } else {
                     api.setMessageReaction("🕓", messageID, null, true);
                 }
-            } else {
-                // Do something when user don't have enough permissions
-                // Làm gì đó khi người dùng không có đủ quyền hạn
             }
-                } else {
-            // Unknown command handler with random Otaku GIF
+        } else {
+            // ✅ Unknown command handler with random Otaku GIF
             try {
                 const reactions = [
-                    "airkiss",
-                    "angrystare",
-                    "bite",
-                    "bleh",
-                    "blush",
-                    "brofist",
-                    "celebrate",
-                    "cheers",
-                    "clap",
-                    "confused",
-                    "cry",
-                    "cuddle",
-                    "cute",
-                    "dab",
-                    "dance",
-                    "drool",
-                    "evillaugh",
-                    "facepalm",
-                    "handhold",
-                    "happy",
-                    "headbang",
-                    "hi",
-                    "highfive",
-                    "hug",
-                    "kick",
-                    "kiss",
-                    "laugh",
-                    "lick",
-                    "love",
-                    "mad",
-                    "nervous",
-                    "nod",
-                    "nope",
-                    "nosebleed",
-                    "nom",
-                    "nuzzle",
-                    "pat",
-                    "peck",
-                    "peek",
-                    "pinch",
-                    "poke",
-                    "pout",
-                    "punch",
-                    "run",
-                    "salute",
-                    "scared",
-                    "shrug",
-                    "shy",
-                    "sip",
-                    "slap",
-                    "sleepy",
-                    "slowclap",
-                    "smile",
-                    "smug",
-                    "stare",
-                    "surprised",
-                    "sweat",
-                    "thumbsup",
-                    "tickle",
-                    "tired",
-                    "wave",
-                    "wink",
-                    "yawn"
+                    "airkiss","angrystare","bite","bleh","blush","brofist","celebrate","cheers","clap",
+                    "confused","cry","cuddle","cute","dab","dance","drool","evillaugh","facepalm",
+                    "handhold","happy","headbang","hi","highfive","hug","kick","kiss","laugh","lick",
+                    "love","mad","nervous","nod","nope","nosebleed","nom","nuzzle","pat","peck","peek",
+                    "pinch","poke","pout","punch","run","salute","scared","shrug","shy","sip","slap",
+                    "sleepy","slowclap","smile","smug","stare","surprised","sweat","thumbsup","tickle",
+                    "tired","wave","wink","yawn"
                 ];
 
-                // Pick a random reaction
-                const randomReaction =
-                    reactions[Math.floor(Math.random() * reactions.length)];
+                const randomReaction = reactions[Math.floor(Math.random() * reactions.length)];
 
-                // Build the otakugifs API URL
-                const gifUrl = `https://api.otakugifs.xyz/gif?reaction=${randomReaction}`;
+                // fetch JSON
+                const res = await global.utils.getJSON(
+                    `https://api.otakugifs.xyz/gif?reaction=${randomReaction}`
+                );
 
-                // Send unknown command message with random GIF
+                const gifUrl = res.url;
+
                 api.sendMessage(
                     {
-                        body: "Unknown command! Use #help bruh✨",
+                        body: `❌ Unknown command: ${args[0]} \nUse #help bruh ✨`,
                         attachment: await global.utils.getStreamFromURL(gifUrl),
                     },
                     threadID,
@@ -351,11 +261,9 @@ async function handleCommand(event) {
                 );
             } catch (err) {
                 console.error("Failed to send unknown command message:", err);
+                api.sendMessage("❌ Unknown command, but failed to fetch GIF.", threadID, messageID);
             }
-		}
-		
-            // Do something when command not found
-            // Làm gì đó khi không tìm thấy lệnh
+        }
     }
 }
 
@@ -378,11 +286,9 @@ async function handleReaction(event) {
         const eventData = global.client.reactions.get(messageID);
         const commandName = eventData.name;
 
-        if (eventData.author_only === true && eventData.author !== userID)
-            return;
+        if (eventData.author_only === true && eventData.author !== userID) return;
 
-        let TLang =
-            _thread?.data?.language || global.config.LANGUAGE || "en_US";
+        let TLang = _thread?.data?.language || global.config.LANGUAGE || "en_US";
         const getLangForCommand = (key, objectData) =>
             getLang(key, objectData, commandName, TLang);
 
@@ -422,8 +328,7 @@ async function handleReply(event) {
     let isValidReply = global.client.replies.has(messageReply.messageID);
 
     if (isValidReply) {
-        const _thread =
-            event.isGroup === true ? (await Threads.get(threadID)) || {} : {};
+        const _thread = event.isGroup === true ? (await Threads.get(threadID)) || {} : {};
         const _user = (await Users.get(senderID)) || {};
 
         const data = { user: _user, thread: _thread };
@@ -433,11 +338,9 @@ async function handleReply(event) {
         const eventData = global.client.replies.get(messageReply.messageID);
         const commandName = eventData.name;
 
-        if (eventData.author_only === true && eventData.author !== senderID)
-            return;
+        if (eventData.author_only === true && eventData.author !== senderID) return;
 
-        let TLang =
-            _thread?.data?.language || global.config.LANGUAGE || "en_US";
+        let TLang = _thread?.data?.language || global.config.LANGUAGE || "en_US";
         const getLangForCommand = (key, objectData) =>
             getLang(key, objectData, commandName, TLang);
 
@@ -475,8 +378,7 @@ async function handleMessage(event) {
     const { threadID, senderID } = event;
     const { Threads, Users } = global.controllers;
 
-    const _thread =
-        event.isGroup === true ? (await Threads.get(threadID)) || {} : {};
+    const _thread = event.isGroup === true ? (await Threads.get(threadID)) || {} : {};
     const _user = (await Users.get(senderID)) || {};
 
     const data = { user: _user, thread: _thread };
@@ -484,8 +386,7 @@ async function handleMessage(event) {
 
     for (const [name, callback] of global.plugins.onMessage.entries()) {
         try {
-            let TLang =
-                _thread?.data?.language || global.config.LANGUAGE || "en_US";
+            let TLang = _thread?.data?.language || global.config.LANGUAGE || "en_US";
             const getLangForCommand = (key, objectData) =>
                 getLang(key, objectData, name, TLang);
             const extraEventProperties = getExtraEventProperties(event, {
@@ -506,8 +407,7 @@ async function handleMessage(event) {
 }
 
 function handleUnsend(event) {
-    if (event.senderID == event.threadID || global.botID == event.threadID)
-        return;
+    if (event.senderID == event.threadID || global.botID == event.threadID) return;
     resend.default({ event });
 }
 
@@ -535,15 +435,15 @@ function handleEvent(event) {
                     case "log:thread-admins":
                         global.plugins.events.get("thread-update")({ event });
                         break;
-										case "log:thread-image":
-												global.plugins.events.get("thread-image")({ event });
-												break;
+                    case "log:thread-image":
+                        global.plugins.events.get("thread-image")({ event });
+                        break;
                     default:
                         break;
                 }
                 break;
             }
-						// Will be removed in the future, using log:thread-image instead
+            // Legacy support
             case "change_thread_image":
                 global.plugins.events.get("thread-image")({ event });
                 break;
